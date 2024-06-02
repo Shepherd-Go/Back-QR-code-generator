@@ -1,6 +1,6 @@
 module github.com/andresxlp/qr-system
 
-go 1.19
+go 1.22.3
 
 require (
 	github.com/andresxlp/gosuite v0.2.2-alpha
@@ -11,7 +11,6 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	go.mongodb.org/mongo-driver v1.11.1
-	go.uber.org/dig v1.16.1
 )
 
 require (
