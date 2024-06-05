@@ -7,8 +7,8 @@ import (
 )
 
 type QR interface {
-	Create(ctx context.Context, qr models.Qr) error
-	GetQrCode(ctx context.Context, qr models.Qr) (models.Qr, error)
-	ValidateQrCode(ctx context.Context, requestQr models.Qr) error
+	Create(ctx context.Context, qr models.Qr) (string, error)
+	//GetQrCode(ctx context.Context, qr models.Qr) (models.Qr, error)
+	//ValidateQrCode(ctx context.Context, requestQr models.Qr) error
 	CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error)
 }

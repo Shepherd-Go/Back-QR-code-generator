@@ -24,8 +24,8 @@ func NewQr(qrHand handler.QR, adminMiddleware middleware.Admin) QR {
 
 func (groups qr) Resource(c *echo.Group) {
 	groupPath := c.Group("")
-	groupPath.POST("/generate", groups.qrHandler.GenerateQRCode, groups.adminMiddleware.OnlyAdmins)
-	groupPath.POST("/download/:serial", groups.qrHandler.DownloadQRCode)
-	groupPath.POST("/validate/:serial", groups.qrHandler.ValidateQRCode)
+	groupPath.POST("/generate", groups.qrHandler.GenerateQRCode)
+	//groupPath.POST("/download/:serial", groups.qrHandler.DownloadQRCode)
+	//groupPath.POST("/validate/:serial", groups.qrHandler.ValidateQRCode)
 	groupPath.GET("/count/:email", groups.qrHandler.CountQRCodeUsed)
 }

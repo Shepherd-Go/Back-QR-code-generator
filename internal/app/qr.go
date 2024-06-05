@@ -8,23 +8,20 @@ import (
 	"image/png"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/andresxlp/qr-system/config"
 	"github.com/andresxlp/qr-system/internal/domain/dto"
 	"github.com/andresxlp/qr-system/internal/domain/entity"
 	"github.com/andresxlp/qr-system/internal/domain/ports/repo"
 	"github.com/andresxlp/qr-system/internal/infra/adapters/mongo/models"
 	"github.com/fogleman/gg"
 	"github.com/labstack/gommon/log"
-	uuid "github.com/satori/go.uuid"
 	"github.com/skip2/go-qrcode"
 )
 
 type QR interface {
 	GenerateQRCodes(ctx context.Context, request dto.CreateQrRequest)
-	DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error)
-	ValidateQRCode(ctx context.Context, requestQr dto.QrRequestCommon) error
+	//DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error)
+	//ValidateQRCode(ctx context.Context, requestQr dto.QrRequestCommon) error
 	CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error)
 }
 type qr struct {
@@ -38,33 +35,35 @@ func NewQr(mongo repo.QR) QR {
 }
 
 func (q *qr) GenerateQRCodes(ctx context.Context, request dto.CreateQrRequest) {
-	for i := 0; i < request.TotalQR; i++ {
-		id := uuid.NewV4()
-		code := fmt.Sprintf("%s", id)
 
-		qrImg := q.createQrCode(code)
-
-		q.createTicketWithQR(qrImg, request.Zone, i)
-
-		qrData := models.Qr{
-			Serial: code,
-			Status: "Created",
-			//ImgBytes:  q.createQrCode(code),
-			CreatedBy: request.Email,
-			CreatedAt: time.Now().Local(),
-		}
-
-		if err := q.mongo.Create(ctx, qrData); err != nil {
-			log.Error(err)
-		}
-
+	qrData := models.Qr{
+		N_Table:    request.N_Table,
+		N_Seat:     request.N_Seat,
+		Guest_Name: request.Guest_Name,
+		Rol:        request.Rol,
+		Status:     "Created",
 	}
+
+	id, err := q.mongo.Create(ctx, qrData)
+	if err != nil {
+		log.Error(err)
+	}
+
+	q.createQrCode(id)
+
+	/*for i := 0; i < request.TotalQR; i++ {
+	id := uuid.NewV4()
+	code := fmt.Sprintf("%s", id)
+
+
+
+	q.createTicketWithQR(qrImg, request.Zone, i)*/
+
 }
 
 func (q *qr) createQrCode(code string) entity.QrImage {
-	qrCode := fmt.Sprintf("%s/validate/%s", config.Environments().InternalPrivatePath, code)
 
-	qrByte, err := qrcode.Encode(qrCode, qrcode.Medium, 235)
+	qrByte, err := qrcode.Encode(code, qrcode.Medium, 235)
 	if err != nil {
 		log.Error(err)
 	}
@@ -134,8 +133,8 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, zone string, i int) {
 	os.Remove(qrImg.PathName)
 }
 
-func (q *qr) DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error) {
-	qrDB, err := q.mongo.GetQrCode(ctx, models.Qr{Serial: downloadCode.Serial /*, Pin: downloadCode.Pin*/})
+/*func (q *qr) DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error) {
+	qrDB, err := q.mongo.GetQrCode(ctx, models.Qr{Serial: downloadCode.Serial /*, Pin: downloadCode.Pin})
 	if err != nil {
 		return nil, err
 	}
@@ -144,12 +143,12 @@ func (q *qr) DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommo
 }
 
 func (q *qr) ValidateQRCode(ctx context.Context, requestQr dto.QrRequestCommon) error {
-	err := q.mongo.ValidateQrCode(ctx, models.Qr{Serial: requestQr.Serial /*, Pin: requestQr.Pin*/})
+	err := q.mongo.ValidateQrCode(ctx, models.Qr{Serial: requestQr.Serial /*, Pin: requestQr.Pin})
 	if err != nil {
 		return err
 	}
 	return err
-}
+}*/
 
 func (q *qr) CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error) {
 	totalQRUsed, err := q.mongo.CountQRCodeUsed(ctx, emailOwner)

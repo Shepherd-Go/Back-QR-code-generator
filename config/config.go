@@ -1,16 +1,24 @@
 package config
 
 import (
+	"log"
+	"os"
 	"sync"
 
 	"github.com/andresxlp/gosuite/config"
 )
 
 type Config struct {
-	ServerHost             string `required:"true" mapstructure:"server_host"`
-	Port                   int    `required:"true" mapstructure:"port"`
+	Server  Server  `required:"true" mapstructure:"server"`
+	Databse Databse `required:"true" mapstructure:"database"`
+}
+
+type Server struct {
+	Port int `required:"true" mapstructure:"port"`
+}
+
+type Databse struct {
 	MongoDBConnectionWrite string `required:"true" mapstructure:"mongo_db_connection_write"`
-	InternalPrivatePath    string `required:"true" mapstructure:"internal_private_path"`
 }
 
 var (
@@ -20,8 +28,16 @@ var (
 
 func Environments() Config {
 	once.Do(func() {
-		config.SetEnvsFromFile("qr-system", ".env")
-		config.GetConfigFromEnv(&Cfg)
+
+		if os.Getenv("DEVMODE") == "true" {
+			if err := config.SetEnvsFromFile("qr-system", ".env"); err != nil {
+				log.Panic(err)
+			}
+		}
+
+		if err := config.GetConfigFromEnv(&Cfg); err != nil {
+			log.Panicf("Error parsing enviroment vars %v", err)
+		}
 	})
 
 	return Cfg

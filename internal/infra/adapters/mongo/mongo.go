@@ -35,7 +35,7 @@ func generateClient() *mongo.Client {
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctxTimeout, options.Client().ApplyURI(config.Environments().MongoDBConnectionWrite))
+	client, err := mongo.Connect(ctxTimeout, options.Client().ApplyURI(config.Environments().Databse.MongoDBConnectionWrite))
 	if err != nil {
 		panic(fmt.Sprintf("mongoDB error in client configuration: %s", err.Error()))
 	}

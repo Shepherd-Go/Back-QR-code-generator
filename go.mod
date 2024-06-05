@@ -8,9 +8,9 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/labstack/gommon v0.4.0
-	github.com/satori/go.uuid v1.2.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	go.mongodb.org/mongo-driver v1.11.1
+	go.uber.org/dig v1.17.1
 )
 
 require (

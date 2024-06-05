@@ -23,6 +23,9 @@ func New(server *echo.Echo, qr groups.QR) *Router {
 }
 
 func (r *Router) Init() {
+
+	r.server.Use(middleware.Recover())
+
 	r.server.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "time=${time_rfc3339}, method=${method}, uri=${uri}, latency=${latency_human}\n",
 	}))

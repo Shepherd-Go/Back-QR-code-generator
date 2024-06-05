@@ -2,13 +2,11 @@ package repo
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/andresxlp/qr-system/internal/domain/ports/repo"
 	"github.com/andresxlp/qr-system/internal/infra/adapters/mongo/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type qr struct {
@@ -19,13 +17,16 @@ func NewQr(dbClient models.DBClientWrite) repo.QR {
 	return &qr{dbClient}
 }
 
-func (q qr) Create(ctx context.Context, qr models.Qr) error {
+func (q qr) Create(ctx context.Context, qr models.Qr) (string, error) {
 	db := q.dbClient.Database("qr-code").Collection("qr")
-	_, err := db.InsertOne(ctx, qr)
-	return err
+	objectID, err := db.InsertOne(ctx, qr)
+
+	id := objectID.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, err
 }
 
-func (q qr) GetQrCode(ctx context.Context, requestQr models.Qr) (models.Qr, error) {
+/*func (q qr) GetQrCode(ctx context.Context, requestQr models.Qr) (models.Qr, error) {
 	db := q.dbClient.Database("qr-code").Collection("qr")
 	filter := bson.D{{"serial", requestQr.Serial}}
 
@@ -78,7 +79,7 @@ func (q qr) ValidateQrCode(ctx context.Context, requestQr models.Qr) error {
 	}
 
 	return nil
-}
+}*/
 
 func (q qr) CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error) {
 	db := q.dbClient.Database("qr-code").Collection("qr")

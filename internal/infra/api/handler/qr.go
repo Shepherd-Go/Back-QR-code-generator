@@ -12,8 +12,8 @@ import (
 
 type QR interface {
 	GenerateQRCode(cntx echo.Context) error
-	DownloadQRCode(cntx echo.Context) error
-	ValidateQRCode(cntx echo.Context) error
+	//DownloadQRCode(cntx echo.Context) error
+	//ValidateQRCode(cntx echo.Context) error
 	CountQRCodeUsed(cntx echo.Context) error
 }
 
@@ -48,7 +48,7 @@ func (q *qr) GenerateQRCode(cntx echo.Context) error {
 	return cntx.JSON(http.StatusOK, "QR Codes are being generated")
 }
 
-func (q *qr) DownloadQRCode(cntx echo.Context) error {
+/*func (q *qr) DownloadQRCode(cntx echo.Context) error {
 	ctx := context.Background()
 	requestQr := dto.QrRequestCommon{}
 	if err := cntx.Bind(&requestQr); err != nil {
@@ -110,7 +110,7 @@ func (q *qr) ValidateQRCode(cntx echo.Context) error {
 		Message: "Success",
 		Data:    "QR Code Validado Correctamente",
 	})
-}
+}*/
 
 func (q *qr) CountQRCodeUsed(cntx echo.Context) error {
 	ctx := context.Background()
