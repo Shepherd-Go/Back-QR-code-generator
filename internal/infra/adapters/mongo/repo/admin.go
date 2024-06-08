@@ -19,7 +19,7 @@ func NewAdmin(dbCliente models.DBClientWrite) repo.Admin {
 }
 
 func (a admin) GetByEmail(ctx context.Context, email string) (models.Admin, error) {
-	db := a.dbClient.Database("qr-code").Collection("admins")
+	db := a.dbClient.Collection("admins")
 
 	var adminFromDB models.Admin
 

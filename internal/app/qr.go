@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/andresxlp/qr-system/internal/domain/dto"
@@ -76,6 +77,15 @@ func (q *qr) createQrCode(code string) entity.QrImage {
 	img, err := png.Decode(bytes.NewBuffer(qrByte))
 	if err != nil {
 		log.Errorf("an error occurred when try decode img: %v", err)
+	}
+
+	dir := filepath.Dir(qrImg.PathName)
+	log.Infof("Directorio: %s", dir)
+	if _, err = os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			log.Fatalf("an error occurred when trying to create directory: %v", err)
+		}
 	}
 
 	file, err := os.Create(qrImg.PathName)
