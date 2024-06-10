@@ -91,7 +91,7 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
 		panic(err)
 	}
 	dc.DrawImage(qrImg.ImgFile, 445, 1079)
-	dc.DrawStringWrapped(strings.ToUpper(guestName), 220, 1587, 0, 0, 800, 1, 1)
+	dc.DrawStringWrapped(strings.ToUpper(guestName), 220, 1620, 0, 0, 800, 1, 1)
 	dc.Clip()
 
 	ticketWithQR := dc.Image()
