@@ -20,6 +20,9 @@ func NewQr(dbClient models.DBClientWrite) repo.QR {
 func (q qr) Create(ctx context.Context, qr models.Qr) (string, error) {
 	db := q.dbClient.Collection("qr-codes")
 	objectID, err := db.InsertOne(ctx, qr)
+	if err != nil {
+		return "", err
+	}
 
 	id := objectID.InsertedID.(primitive.ObjectID).Hex()
 
