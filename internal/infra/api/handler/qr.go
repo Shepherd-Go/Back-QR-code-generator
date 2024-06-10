@@ -1,20 +1,20 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/andresxlp/qr-system/internal/app"
 	"github.com/andresxlp/qr-system/internal/domain/dto"
 	"github.com/andresxlp/qr-system/internal/domain/entity"
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type QR interface {
-	GenerateQRCode(cntx echo.Context) error
-	//DownloadQRCode(cntx echo.Context) error
-	//ValidateQRCode(cntx echo.Context) error
-	CountQRCodeUsed(cntx echo.Context) error
+	GenerateQRCode(c echo.Context) error
+	ValidateQRCode(c echo.Context) error
+	ConfirmInvitation(c echo.Context) error
+	//CountQRCodeUsed(cntx echo.Context) error
 }
 
 type qr struct {
@@ -25,18 +25,11 @@ func NewQr(qrService app.QR) QR {
 	return &qr{qrService}
 }
 
-func (q *qr) GenerateQRCode(cntx echo.Context) error {
-	ctx := context.Background()
+func (q *qr) GenerateQRCode(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	requestQr := dto.CreateQrRequest{}
-	if err := cntx.Bind(&requestQr); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	if err := requestQr.Validate(); err != nil {
+	requestQr := dto.QRManagement{}
+	if err := c.Bind(&requestQr); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
 			Message: "Error",
 			Data:    err.Error(),
@@ -45,7 +38,7 @@ func (q *qr) GenerateQRCode(cntx echo.Context) error {
 
 	go q.qrService.GenerateQRCodes(ctx, requestQr)
 
-	return cntx.JSON(http.StatusOK, "QR Codes are being generated")
+	return c.JSON(http.StatusOK, "QR Codes are being generated")
 }
 
 /*func (q *qr) DownloadQRCode(cntx echo.Context) error {
@@ -78,60 +71,40 @@ func (q *qr) GenerateQRCode(cntx echo.Context) error {
 		Message: "Success",
 		Data:    qrCodeByte,
 	})
-}
-
-func (q *qr) ValidateQRCode(cntx echo.Context) error {
-	ctx := context.Background()
-
-	requestQr := dto.QrRequestCommon{}
-	if err := cntx.Bind(&requestQr); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	if err := requestQr.Validate(); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	err := q.qrService.ValidateQRCode(ctx, requestQr)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	return cntx.JSON(http.StatusOK, entity.Success{
-		Message: "Success",
-		Data:    "QR Code Validado Correctamente",
-	})
 }*/
 
-func (q *qr) CountQRCodeUsed(cntx echo.Context) error {
-	ctx := context.Background()
-	email := cntx.Param("email")
-	if email == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
-			Message: "Error",
-			Data:    "email param are required",
-		})
-	}
+func (q *qr) ValidateQRCode(c echo.Context) error {
+	ctx := c.Request().Context()
 
-	totalQrCodeUsed, err := q.qrService.CountQRCodeUsed(ctx, email)
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
+		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{Message: err.Error()})
 	}
 
-	return cntx.JSON(http.StatusOK, entity.Success{
-		Message: "Total QR Code Used",
-		Data:    totalQrCodeUsed,
+	infoGuest, err := q.qrService.ValidateQRCode(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, entity.Success{
+		Message: "Success",
+		Data:    infoGuest,
 	})
+}
+
+func (q *qr) ConfirmInvitation(c echo.Context) error {
+
+	ctx := c.Request().Context()
+
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{Message: err.Error()})
+	}
+
+	err = q.qrService.ConfirmInvitation(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, entity.Success{Message: "invitation confirmed successfully"})
 }

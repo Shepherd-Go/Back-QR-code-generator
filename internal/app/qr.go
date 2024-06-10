@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image/color"
 	"image/png"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,15 +16,17 @@ import (
 	"github.com/andresxlp/qr-system/internal/domain/ports/repo"
 	"github.com/andresxlp/qr-system/internal/infra/adapters/mongo/models"
 	"github.com/fogleman/gg"
+	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/skip2/go-qrcode"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type QR interface {
-	GenerateQRCodes(ctx context.Context, request dto.CreateQrRequest)
-	//DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error)
-	//ValidateQRCode(ctx context.Context, requestQr dto.QrRequestCommon) error
-	CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error)
+	GenerateQRCodes(ctx context.Context, request dto.QRManagement)
+	ValidateQRCode(ctx context.Context, id primitive.ObjectID) (dto.QRManagement, error)
+	ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error
+	//CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error)
 }
 type qr struct {
 	mongo repo.QR
@@ -35,7 +38,7 @@ func NewQr(mongo repo.QR) QR {
 	}
 }
 
-func (q *qr) GenerateQRCodes(ctx context.Context, request dto.CreateQrRequest) {
+func (q *qr) GenerateQRCodes(ctx context.Context, request dto.QRManagement) {
 
 	qrData := models.Qr{
 		N_Table:    request.N_Table,
@@ -118,28 +121,32 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
 
 }
 
-/*func (q *qr) DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error) {
-	qrDB, err := q.mongo.GetQrCode(ctx, models.Qr{Serial: downloadCode.Serial /*, Pin: downloadCode.Pin})
+func (q *qr) ValidateQRCode(ctx context.Context, id primitive.ObjectID) (dto.QRManagement, error) {
+	infoGuest, err := q.mongo.ValidateQrCode(ctx, id)
 	if err != nil {
-		return nil, err
+		if err.Error() == "this qr-code not exist" {
+			return dto.QRManagement{}, echo.NewHTTPError(http.StatusNotFound, entity.Error{Message: "this qr-code not exist"})
+		}
+		log.Errorf(err.Error())
+		return dto.QRManagement{}, echo.NewHTTPError(http.StatusInternalServerError, entity.Error{Message: "an internal error has occurred"})
 	}
 
-	return qrDB.ImgBytes, nil
+	infoGuest.ID = ""
+
+	return infoGuest, nil
 }
 
-func (q *qr) ValidateQRCode(ctx context.Context, requestQr dto.QrRequestCommon) error {
-	err := q.mongo.ValidateQrCode(ctx, models.Qr{Serial: requestQr.Serial /*, Pin: requestQr.Pin})
+func (q *qr) ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error {
+
+	_, err := q.ValidateQRCode(ctx, id)
 	if err != nil {
 		return err
 	}
-	return err
-}*/
 
-func (q *qr) CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error) {
-	totalQRUsed, err := q.mongo.CountQRCodeUsed(ctx, emailOwner)
-	if err != nil {
-		return 0, err
+	if err = q.mongo.ConfirmInvitation(ctx, id); err != nil {
+		log.Errorf(err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, entity.Error{Message: "an internal error has occurred"})
 	}
 
-	return totalQRUsed, err
+	return nil
 }
