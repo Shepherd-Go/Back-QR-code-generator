@@ -18,7 +18,7 @@ func NewQr(dbClient models.DBClientWrite) repo.QR {
 }
 
 func (q qr) Create(ctx context.Context, qr models.Qr) (string, error) {
-	db := q.dbClient.Database("qr-code").Collection("qr")
+	db := q.dbClient.Collection("qr-codes")
 	objectID, err := db.InsertOne(ctx, qr)
 
 	id := objectID.InsertedID.(primitive.ObjectID).Hex()
@@ -82,7 +82,7 @@ func (q qr) ValidateQrCode(ctx context.Context, requestQr models.Qr) error {
 }*/
 
 func (q qr) CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error) {
-	db := q.dbClient.Database("qr-code").Collection("qr")
+	db := q.dbClient.Collection("qr")
 	filter := bson.D{{"created_by", emailOwner}, {"status", "Used"}}
 	totalQRCodeUsed, err := db.CountDocuments(ctx, filter)
 	if err != nil {

@@ -28,10 +28,10 @@ func ConnInstance() models.DBClientWrite {
 }
 
 func getConnection() models.DBClientWrite {
-	return models.DBClientWrite{Client: generateClient()}
+	return models.DBClientWrite{Database: generateClient()}
 }
 
-func generateClient() *mongo.Client {
+func generateClient() *mongo.Database {
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -44,9 +44,7 @@ func generateClient() *mongo.Client {
 		panic(fmt.Sprintf("mongoDB error in client connection: %s", err.Error()))
 	}
 
-	client.Database("qr-code")
-
 	log.Info("Database Write Connection Successfully")
 
-	return client
+	return client.Database("nl-wedding")
 }

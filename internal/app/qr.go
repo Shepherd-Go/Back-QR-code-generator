@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/andresxlp/qr-system/internal/domain/dto"
@@ -49,73 +50,48 @@ func (q *qr) GenerateQRCodes(ctx context.Context, request dto.CreateQrRequest) {
 		log.Error(err)
 	}
 
-	q.createQrCode(id)
+	qrImg := q.createQrCode(id)
 
-	/*for i := 0; i < request.TotalQR; i++ {
-	id := uuid.NewV4()
-	code := fmt.Sprintf("%s", id)
-
-
-
-	q.createTicketWithQR(qrImg, request.Zone, i)*/
+	q.createTicketWithQR(qrImg, request.Guest_Name)
 
 }
 
 func (q *qr) createQrCode(code string) entity.QrImage {
-
-	qrByte, err := qrcode.Encode(code, qrcode.Medium, 235)
+	QRCode, err := qrcode.New(code, qrcode.Medium)
 	if err != nil {
 		log.Error(err)
 	}
 
-	qrImg := entity.QrImage{
-		Serial:   code,
-		PathName: fmt.Sprintf("tmp/qr-code-%s.png", code),
-	}
+	QRCode.DisableBorder = true
 
-	img, err := png.Decode(bytes.NewBuffer(qrByte))
-	if err != nil {
-		log.Errorf("an error occurred when try decode img: %v", err)
+	return entity.QrImage{
+		Serial:  code,
+		ImgFile: QRCode.Image(350),
 	}
-
-	file, err := os.Create(qrImg.PathName)
-	if err != nil {
-		log.Errorf("an error occurred when try create file: %v", err)
-	}
-	defer file.Close()
-
-	if err = png.Encode(file, img); err != nil {
-		log.Errorf("an error occurred when try Encode file: %v", err)
-	}
-
-	qrImg.ImgFile, err = gg.LoadPNG(qrImg.PathName)
-	if err != nil {
-		log.Errorf("an error occurred when try load qr img", err)
-	}
-
-	return qrImg
 }
 
-func (q *qr) createTicketWithQR(qrImg entity.QrImage, zone string, i int) {
-	imgTicket, err := gg.LoadPNG("tmp/ticket.png")
+func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
+	imgTicket, err := gg.LoadPNG("tmp/invitation_base.png")
 	if err != nil {
 		log.Error(err)
+		return
 	}
 
 	dc := gg.NewContextForImage(imgTicket)
 	dc.Clear()
-	dc.SetColor(color.Black)
+	dc.SetColor(color.RGBA{
+		R: 203,
+		G: 167,
+		B: 122,
+		A: 255,
+	})
 	dc.DrawImage(imgTicket, 0, 0)
 
-	if err = dc.LoadFontFace("tmp/fonts/impact.ttf", 48); err != nil {
+	if err = dc.LoadFontFace("tmp/fonts/higuen_serif.ttf", 55); err != nil {
 		panic(err)
 	}
-	dc.DrawImage(qrImg.ImgFile, 75, 550)
-	dc.DrawString(strings.ToUpper(zone), 75, 830)
-	if err = dc.LoadFontFace("tmp/fonts/impact.ttf", 24); err != nil {
-		panic(err)
-	}
-	dc.DrawString(fmt.Sprintf("N° %04d", i+1), 75, 870)
+	dc.DrawImage(qrImg.ImgFile, 445, 1079)
+	dc.DrawStringWrapped(strings.ToUpper(guestName), 220, 1587, 0, 0, 800, 1, 1)
 	dc.Clip()
 
 	ticketWithQR := dc.Image()
@@ -126,11 +102,20 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, zone string, i int) {
 		log.Error(err)
 	}
 
-	if err = os.WriteFile(fmt.Sprintf("tmp/tickets/ticket-%s.png", qrImg.Serial), buff.Bytes(), 0644); err != nil {
+	invitationPath := "tmp/invitations/"
+	dir := filepath.Dir(invitationPath)
+	log.Infof("Directorio: %s", dir)
+	if _, err = os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			log.Fatalf("an error occurred when trying to create directory: %v", err)
+		}
+	}
+
+	if err = os.WriteFile(fmt.Sprintf("%s%s.png", invitationPath, strings.Replace(guestName, " ", "-", -1)), buff.Bytes(), 0644); err != nil {
 		log.Error(err)
 	}
 
-	os.Remove(qrImg.PathName)
 }
 
 /*func (q *qr) DownloadQRCode(ctx context.Context, downloadCode dto.QrRequestCommon) ([]byte, error) {
