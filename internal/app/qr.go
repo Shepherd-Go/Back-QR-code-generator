@@ -131,8 +131,6 @@ func (q *qr) ValidateQRCode(ctx context.Context, id primitive.ObjectID) (dto.QRM
 		return dto.QRManagement{}, echo.NewHTTPError(http.StatusInternalServerError, entity.Error{Message: "an internal error has occurred"})
 	}
 
-	infoGuest.ID = ""
-
 	return infoGuest, nil
 }
 

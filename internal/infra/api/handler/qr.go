@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/andresxlp/qr-system/internal/app"
@@ -26,7 +27,7 @@ func NewQr(qrService app.QR) QR {
 }
 
 func (q *qr) GenerateQRCode(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := context.Background()
 
 	requestQr := dto.QRManagement{}
 	if err := c.Bind(&requestQr); err != nil {
@@ -40,38 +41,6 @@ func (q *qr) GenerateQRCode(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, "QR Codes are being generated")
 }
-
-/*func (q *qr) DownloadQRCode(cntx echo.Context) error {
-	ctx := context.Background()
-	requestQr := dto.QrRequestCommon{}
-	if err := cntx.Bind(&requestQr); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	if err := requestQr.Validate(); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	qrCodeByte, err := q.qrService.DownloadQRCode(ctx, requestQr)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, entity.Error{
-			Message: "Error",
-			Data:    err.Error(),
-		})
-	}
-
-	cntx.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	return cntx.JSON(http.StatusOK, entity.Success{
-		Message: "Success",
-		Data:    qrCodeByte,
-	})
-}*/
 
 func (q *qr) ValidateQRCode(c echo.Context) error {
 	ctx := c.Request().Context()
