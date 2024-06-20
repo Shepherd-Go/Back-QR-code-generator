@@ -11,38 +11,37 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type QR interface {
-	GenerateQRCode(c echo.Context) error
-	ValidateQRCode(c echo.Context) error
+type Invitation interface {
+	CreateInvitation(c echo.Context) error
+	ValidateInvitation(c echo.Context) error
 	ConfirmInvitation(c echo.Context) error
-	//CountQRCodeUsed(cntx echo.Context) error
 }
 
-type qr struct {
-	qrService app.QR
+type invitation struct {
+	qrService app.Invitation
 }
 
-func NewQr(qrService app.QR) QR {
-	return &qr{qrService}
+func NewInvitation(qrService app.Invitation) Invitation {
+	return &invitation{qrService}
 }
 
-func (q *qr) GenerateQRCode(c echo.Context) error {
+func (q *invitation) CreateInvitation(c echo.Context) error {
 	ctx := context.Background()
 
-	requestQr := dto.QRManagement{}
-	if err := c.Bind(&requestQr); err != nil {
+	guest := dto.Guest{}
+	if err := c.Bind(&guest); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
 			Message: "Error",
 			Data:    err.Error(),
 		})
 	}
 
-	go q.qrService.GenerateQRCodes(ctx, requestQr)
+	go q.qrService.GenerateInvitation(ctx, guest)
 
 	return c.JSON(http.StatusOK, "QR Codes are being generated")
 }
 
-func (q *qr) ValidateQRCode(c echo.Context) error {
+func (q *invitation) ValidateInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	id, err := primitive.ObjectIDFromHex(c.Param("id"))
@@ -61,7 +60,7 @@ func (q *qr) ValidateQRCode(c echo.Context) error {
 	})
 }
 
-func (q *qr) ConfirmInvitation(c echo.Context) error {
+func (q *invitation) ConfirmInvitation(c echo.Context) error {
 
 	ctx := c.Request().Context()
 

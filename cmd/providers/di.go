@@ -30,7 +30,7 @@ func BuildContainer() *dig.Container {
 
 	_ = Container.Provide(groups.NewQr)
 
-	_ = Container.Provide(handler.NewQr)
+	_ = Container.Provide(handler.NewInvitation)
 
 	_ = Container.Provide(app.NewQr)
 	_ = Container.Provide(app.NewAdmin)

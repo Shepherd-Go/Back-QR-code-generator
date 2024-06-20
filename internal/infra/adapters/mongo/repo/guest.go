@@ -12,16 +12,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type qr struct {
+const guests string = "guest"
+
+type guest struct {
 	dbClient models.DBClientWrite
 }
 
-func NewQr(dbClient models.DBClientWrite) repo.QR {
-	return &qr{dbClient}
+func NewGuest(dbClient models.DBClientWrite) repo.QR {
+	return &guest{dbClient}
 }
 
-func (q *qr) Create(ctx context.Context, qr models.Guest) (string, error) {
-	db := q.dbClient.Collection("qr-codes")
+func (q *guest) Create(ctx context.Context, qr models.Guest) (string, error) {
+	db := q.dbClient.Collection(guests)
 	objectID, err := db.InsertOne(ctx, qr)
 	if err != nil {
 		return "", err
@@ -32,8 +34,8 @@ func (q *qr) Create(ctx context.Context, qr models.Guest) (string, error) {
 	return id, err
 }
 
-func (q *qr) ValidateQrCode(ctx context.Context, id primitive.ObjectID) (dto.Guest, error) {
-	db := q.dbClient.Collection("qr-codes")
+func (q *guest) ValidateQrCode(ctx context.Context, id primitive.ObjectID) (dto.Guest, error) {
+	db := q.dbClient.Collection(guests)
 	filter := bson.D{{"_id", id}}
 
 	infoGuest := models.Guest{}
@@ -46,8 +48,8 @@ func (q *qr) ValidateQrCode(ctx context.Context, id primitive.ObjectID) (dto.Gue
 	return infoGuest.ToDomainDTO(), nil
 }
 
-func (q *qr) ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error {
-	db := q.dbClient.Collection("qr-codes")
+func (q *guest) ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error {
+	db := q.dbClient.Collection(guests)
 
 	_, err := db.UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", bson.D{{"status", "Used"}}}})
 	if err != nil {
@@ -56,14 +58,3 @@ func (q *qr) ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error
 
 	return nil
 }
-
-/*func (q qr) CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error) {
-	db := q.dbClient.Collection("qr")
-	filter := bson.D{{"created_by", emailOwner}, {"status", "Used"}}
-	totalQRCodeUsed, err := db.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	return totalQRCodeUsed, nil
-}*/
