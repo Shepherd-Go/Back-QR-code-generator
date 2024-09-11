@@ -9,7 +9,7 @@ import (
 )
 
 type QR interface {
-	Create(ctx context.Context, qr models.Qr) (string, error)
+	Create(ctx context.Context, qr models.Invitados) (string, error)
 	ValidateQrCode(ctx context.Context, id primitive.ObjectID) (dto.QRManagement, error)
 	ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error
 	//CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error)

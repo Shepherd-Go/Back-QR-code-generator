@@ -15,9 +15,9 @@ import (
 	"github.com/andresxlp/qr-system/internal/domain/entity"
 	"github.com/andresxlp/qr-system/internal/domain/ports/repo"
 	"github.com/andresxlp/qr-system/internal/infra/adapters/mongo/models"
+	"github.com/charmbracelet/log"
 	"github.com/fogleman/gg"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/skip2/go-qrcode"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -40,22 +40,25 @@ func NewQr(mongo repo.QR) QR {
 
 func (q *qr) GenerateQRCodes(ctx context.Context, request dto.QRManagement) {
 
-	qrData := models.Qr{
-		N_Table:    request.N_Table,
-		N_Seat:     request.N_Seat,
-		Guest_Name: request.Guest_Name,
-		Rol:        request.Rol,
-		Status:     "Created",
+	qrData := models.Invitados{
+		Nombre:      request.Nombre,
+		InvitadoPor: request.InvitadoPor,
+		Parentesco:  request.Parentesco,
+		Sorteo:      "",
+		Creado:      "",
+		Entregado:   "",
+		Status:      "Created",
 	}
 
 	id, err := q.mongo.Create(ctx, qrData)
 	if err != nil {
-		log.Error(err)
+		log.Error("")
+		return
 	}
 
 	qrImg := q.createQrCode(id)
 
-	q.createTicketWithQR(qrImg, request.Guest_Name)
+	q.createTicketWithQR(qrImg, request.Nombre)
 
 }
 
@@ -74,7 +77,7 @@ func (q *qr) createQrCode(code string) entity.QrImage {
 }
 
 func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
-	imgTicket, err := gg.LoadPNG("tmp/invitation_base.png")
+	imgTicket, err := gg.LoadPNG("tmp/V-Neifer.png")
 	if err != nil {
 		log.Error(err)
 		return
@@ -107,7 +110,6 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
 
 	invitationPath := "tmp/invitations/"
 	dir := filepath.Dir(invitationPath)
-	log.Infof("Directorio: %s", dir)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
@@ -124,26 +126,28 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
 func (q *qr) ValidateQRCode(ctx context.Context, id primitive.ObjectID) (dto.QRManagement, error) {
 	infoGuest, err := q.mongo.ValidateQrCode(ctx, id)
 	if err != nil {
-		if err.Error() == "this qr-code not exist" {
-			return dto.QRManagement{}, echo.NewHTTPError(http.StatusNotFound, entity.Error{Message: "this qr-code not exist"})
+		if err.Error() == "El qr no es una invitación valida" {
+			return dto.QRManagement{}, echo.NewHTTPError(http.StatusNotFound, entity.Error{Message: err.Error()})
 		}
 		log.Errorf(err.Error())
 		return dto.QRManagement{}, echo.NewHTTPError(http.StatusInternalServerError, entity.Error{Message: "an internal error has occurred"})
 	}
 
+	if infoGuest.Status == "Used" {
+		return dto.QRManagement{}, echo.NewHTTPError(http.StatusUnauthorized, entity.Error{Message: "La Invitación ya fue utilizada"})
+	}
+
 	infoGuest.ID = ""
+
+	if err = q.ConfirmInvitation(ctx, id); err != nil {
+		return dto.QRManagement{}, err
+	}
 
 	return infoGuest, nil
 }
 
 func (q *qr) ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error {
-
-	_, err := q.ValidateQRCode(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	if err = q.mongo.ConfirmInvitation(ctx, id); err != nil {
+	if err := q.mongo.ConfirmInvitation(ctx, id); err != nil {
 		log.Errorf(err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, entity.Error{Message: "an internal error has occurred"})
 	}

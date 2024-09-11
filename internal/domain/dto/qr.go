@@ -1,10 +1,12 @@
 package dto
 
 type QRManagement struct {
-	ID         string `json:"id,omitempty"`
-	N_Table    int    `json:"n_table"`
-	N_Seat     int    `json:"n_seat"`
-	Guest_Name string `json:"guest_name"`
-	Rol        string `json:"rol"`
-	Status     string `json:"status"`
+	ID          string `json:"id,omitempty" csv:"omitempty" swaggerignore:"true"`
+	Nombre      string `json:"nombre" csv:"nombre" example:"Pedro Pacheco"`
+	InvitadoPor string `json:"invitado_por" csv:"invitado_por" example:"Neifer"`
+	Parentesco  string `json:"parentesco" csv:"parentesco" example:"Familia"`
+	Sorteo      string `json:"sorteo" csv:"omitempty" example:""`
+	Creado      string `json:"creado" csv:"omitempty" example:""`
+	Entregado   string `json:"entregado" csv:"omitempty" example:""`
+	Status      string `json:"status" csv:"omitempty" example:"Created"`
 }

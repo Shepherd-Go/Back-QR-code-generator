@@ -8,7 +8,7 @@ import (
 
 	"github.com/andresxlp/qr-system/config"
 	"github.com/andresxlp/qr-system/internal/infra/adapters/mongo/models"
-	"github.com/labstack/gommon/log"
+	"github.com/charmbracelet/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"

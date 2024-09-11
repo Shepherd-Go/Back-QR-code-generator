@@ -10,6 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+//	@title			API de Generación y Validación de Códigos QR
+//	@version		1.0
+//	@description	Esta API permite generar y validar códigos QR para invitaciones a eventos.
+//	@BasePath		/api/qr-code
+//	@schemas		http
+
 func main() {
 
 	container := providers.BuildContainer()
