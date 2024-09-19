@@ -22,6 +22,7 @@ func main() {
 	port := config.Environments().Server.Port
 
 	if err := container.Invoke(func(server *echo.Echo, router *router.Router) {
+
 		router.Init()
 
 		server.Logger.Fatal(server.Start(fmt.Sprintf(":%d", port)))

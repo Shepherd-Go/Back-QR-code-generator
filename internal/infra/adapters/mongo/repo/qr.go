@@ -22,7 +22,7 @@ func NewQr(dbClient models.DBClientWrite) repo.QR {
 	return &qr{dbClient}
 }
 
-func (q qr) Create(ctx context.Context, qr models.Invitados) (string, error) {
+func (q qr) Create(ctx context.Context, qr dto.QRManagement) (string, error) {
 	db := q.dbClient.Collection("guests")
 	objectID, err := db.InsertOne(ctx, qr)
 	if err != nil {
@@ -59,6 +59,19 @@ func (q qr) ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error 
 	}
 
 	return nil
+}
+
+func (q qr) UpdateGuestFromSorteo(ctx context.Context, name string) error {
+
+	db := q.dbClient.Collection("guests")
+
+	_, err := db.UpdateOne(ctx, bson.D{{"nombre", name}}, bson.D{{"$set", bson.D{{"sorteo", "Si"}}}})
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 /*func (q qr) CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error) {

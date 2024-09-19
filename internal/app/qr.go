@@ -14,7 +14,6 @@ import (
 	"github.com/andresxlp/qr-system/internal/domain/dto"
 	"github.com/andresxlp/qr-system/internal/domain/entity"
 	"github.com/andresxlp/qr-system/internal/domain/ports/repo"
-	"github.com/andresxlp/qr-system/internal/infra/adapters/mongo/models"
 	"github.com/charmbracelet/log"
 	"github.com/fogleman/gg"
 	"github.com/labstack/echo/v4"
@@ -23,7 +22,7 @@ import (
 )
 
 type QR interface {
-	GenerateQRCodes(ctx context.Context, request dto.QRManagement)
+	GenerateQRCodes(ctx context.Context, request []dto.QRManagement)
 	ValidateQRCode(ctx context.Context, id primitive.ObjectID) (dto.QRManagement, error)
 	ConfirmInvitation(ctx context.Context, id primitive.ObjectID) error
 	//CountQRCodeUsed(ctx context.Context, emailOwner string) (int64, error)
@@ -38,27 +37,22 @@ func NewQr(mongo repo.QR) QR {
 	}
 }
 
-func (q *qr) GenerateQRCodes(ctx context.Context, request dto.QRManagement) {
+func (q *qr) GenerateQRCodes(ctx context.Context, request []dto.QRManagement) {
 
-	qrData := models.Invitados{
-		Nombre:      request.Nombre,
-		InvitadoPor: request.InvitadoPor,
-		Parentesco:  request.Parentesco,
-		Sorteo:      "",
-		Creado:      "",
-		Entregado:   "",
-		Status:      "Created",
+	for _, v := range request {
+
+		id, err := q.mongo.Create(ctx, v)
+		if err != nil {
+			log.Error("")
+			return
+		}
+
+		qrImg := q.createQrCode(id)
+
+		fmt.Sprintf("Creating inviation: %v\n", v.Nombre)
+		q.createTicketWithQR(qrImg, v.Nombre)
+
 	}
-
-	id, err := q.mongo.Create(ctx, qrData)
-	if err != nil {
-		log.Error("")
-		return
-	}
-
-	qrImg := q.createQrCode(id)
-
-	q.createTicketWithQR(qrImg, request.Nombre)
 
 }
 
@@ -77,7 +71,7 @@ func (q *qr) createQrCode(code string) entity.QrImage {
 }
 
 func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
-	imgTicket, err := gg.LoadPNG("tmp/V-Neifer.png")
+	imgTicket, err := gg.LoadPNG("../tmp/V-Neifer.png")
 	if err != nil {
 		log.Error(err)
 		return
@@ -93,7 +87,7 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
 	})
 	dc.DrawImage(imgTicket, 0, 0)
 
-	if err = dc.LoadFontFace("tmp/fonts/higuen_serif.ttf", 55); err != nil {
+	if err = dc.LoadFontFace("../tmp/fonts/higuen_serif.ttf", 55); err != nil {
 		panic(err)
 	}
 	dc.DrawImage(qrImg.ImgFile, 445, 1079)
@@ -108,7 +102,7 @@ func (q *qr) createTicketWithQR(qrImg entity.QrImage, guestName string) {
 		log.Error(err)
 	}
 
-	invitationPath := "tmp/invitations/"
+	invitationPath := "../tmp/invitations/"
 	dir := filepath.Dir(invitationPath)
 	if _, err = os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, os.ModePerm)

@@ -6,7 +6,6 @@ import (
 	"github.com/andresxlp/qr-system/internal/app"
 	"github.com/andresxlp/qr-system/internal/domain/dto"
 	"github.com/andresxlp/qr-system/internal/domain/entity"
-	"github.com/andresxlp/qr-system/pkg"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -14,7 +13,7 @@ import (
 type QR interface {
 	GenerateQRCode(c echo.Context) error
 	ValidateQRCode(c echo.Context) error
-	GenerateQRCodeBatch(c echo.Context) error
+	//GenerateQRCodeBatch(c echo.Context) error
 	//ConfirmInvitation(c echo.Context) error
 	//CountQRCodeUsed(cntx echo.Context) error
 }
@@ -41,7 +40,7 @@ func NewQr(qrService app.QR) QR {
 func (q *qr) GenerateQRCode(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	requestQr := dto.QRManagement{}
+	requestQr := []dto.QRManagement{}
 	if err := c.Bind(&requestQr); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{
 			Message: "Error",
@@ -65,7 +64,7 @@ func (q *qr) GenerateQRCode(c echo.Context) error {
 //	@Success		200				{string}	string	"Los códigos QR se están generando"
 //	@Failure		400				{object}	entity.Error
 //	@Router			/generate_batch [post]
-func (q *qr) GenerateQRCodeBatch(c echo.Context) error {
+/*func (q *qr) GenerateQRCodeBatch(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	file, err := c.FormFile("Invitaciones")
@@ -85,11 +84,13 @@ func (q *qr) GenerateQRCodeBatch(c echo.Context) error {
 	}
 
 	for _, guest := range requestQr[1:] {
-		q.qrService.GenerateQRCodes(ctx, guest)
+
 	}
 
+	q.qrService.GenerateQRCodes(ctx, guest)
+
 	return c.JSON(http.StatusOK, "QR Codes are being generated")
-}
+}*/
 
 /*func (q *qr) DownloadQRCode(cntx echo.Context) error {
 	ctx := context.Background()
