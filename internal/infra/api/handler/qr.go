@@ -13,6 +13,8 @@ import (
 type QR interface {
 	GenerateQRCode(c echo.Context) error
 	ValidateQRCode(c echo.Context) error
+	GetGuestFromLoterry(c echo.Context) error
+	DeleteGuestFromLoterry(c echo.Context) error
 	//GenerateQRCodeBatch(c echo.Context) error
 	//ConfirmInvitation(c echo.Context) error
 	//CountQRCodeUsed(cntx echo.Context) error
@@ -51,6 +53,29 @@ func (q *qr) GenerateQRCode(c echo.Context) error {
 	q.qrService.GenerateQRCodes(ctx, requestQr)
 
 	return c.JSON(http.StatusOK, "QR Codes are being generated")
+}
+
+func (q *qr) GetGuestFromLoterry(c echo.Context) error {
+
+	ctx := c.Request().Context()
+
+	guest := q.qrService.GetGuestFromLoterry(ctx)
+
+	return c.JSON(http.StatusOK, guest)
+}
+
+func (q *qr) DeleteGuestFromLoterry(c echo.Context) error {
+
+	ctx := c.Request().Context()
+
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, entity.Error{Message: err.Error()})
+	}
+
+	q.qrService.DeleteGusteFromLoterry(ctx, id)
+
+	return c.JSON(http.StatusOK, "guest deleted successfully...")
 }
 
 // GenerateQRCodeBatch
