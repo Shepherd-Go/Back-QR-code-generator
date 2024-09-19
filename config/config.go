@@ -30,7 +30,7 @@ func Environments() Config {
 	once.Do(func() {
 
 		if os.Getenv("DEVMODE") == "true" {
-			if err := config.SetEnvsFromFile("qr-system", ".env"); err != nil {
+			if err := config.SetEnvsFromFile("qr-system", "../.env"); err != nil {
 				log.Panic(err)
 			}
 		}
