@@ -26,9 +26,6 @@ func (groups qr) Resource(c *echo.Group) {
 	groupPath := c.Group("")
 	groupPath.POST("/generate", groups.qrHandler.GenerateQRCode)
 	groupPath.GET("/validate/:id", groups.qrHandler.ValidateQRCode)
-	groupPath.GET("/lottery", groups.qrHandler.GetGuestFromLoterry)
-	groupPath.DELETE("/lottery/delete/:id", groups.qrHandler.DeleteGuestFromLoterry)
-	//groupPath.POST("/generate_batch", groups.qrHandler.GenerateQRCodeBatch)
-	//groupPath.PUT("/confirm/:id", groups.qrHandler.ConfirmInvitation)
-	//groupPath.GET("/count/:email", groups.qrHandler.CountQRCodeUsed)
+	groupPath.GET("/lottery", groups.qrHandler.GetGuestFromLottery)
+	groupPath.POST("/generate_batch", groups.qrHandler.GenerateQRCodeBatch)
 }

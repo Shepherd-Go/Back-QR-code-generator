@@ -18,7 +18,7 @@ definitions:
         example: Familia
         type: string
       sorteo:
-        example: ""
+        example: Si
         type: string
       status:
         example: Created
@@ -76,7 +76,7 @@ paths:
         en un archivo CSV
       parameters:
       - description: Archivo CSV con los datos de los invitados | Formato CSV (nombre,
-          invitado_por, parentesco)
+          invitado_por, parentesco, sorteo)
         in: formData
         name: Invitaciones
         required: true
@@ -93,6 +93,19 @@ paths:
           schema:
             $ref: '#/definitions/entity.Error'
       summary: Generar códigos QR en lote
+      tags:
+      - QR
+  /lottery:
+    get:
+      description: Obtiene un invitado aleatorio de la lotería
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.QRManagement'
+      summary: Obtener invitado de la lotería
       tags:
       - QR
   /validate/{id}:

@@ -71,7 +71,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "Archivo CSV con los datos de los invitados | Formato CSV (nombre, invitado_por, parentesco)",
+                        "description": "Archivo CSV con los datos de los invitados | Formato CSV (nombre, invitado_por, parentesco, sorteo)",
                         "name": "Invitaciones",
                         "in": "formData",
                         "required": true
@@ -88,6 +88,26 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/entity.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/lottery": {
+            "get": {
+                "description": "Obtiene un invitado aleatorio de la lotería",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QR"
+                ],
+                "summary": "Obtener invitado de la lotería",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QRManagement"
                         }
                     }
                 }
@@ -179,7 +199,7 @@ const docTemplate = `{
                 },
                 "sorteo": {
                     "type": "string",
-                    "example": ""
+                    "example": "Si"
                 },
                 "status": {
                     "type": "string",
